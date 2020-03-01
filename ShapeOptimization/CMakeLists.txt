@@ -206,7 +206,15 @@ setup_library_target(tudat_application_library_shape_optimization "${SRCROOT}")
 
 # Add helloWorld application.
 add_executable(application_PropagationOptimizationShapeOptimization "${SRCROOT}/propagationOptimizationShapeOptimization.cpp" )
+add_executable(application_PropagationOptimizationShapeOptimizationQ3 "${SRCROOT}/propagationOptimizationShapeOptimizationQ3.cpp" )
+add_executable(application_PropagationOptimizationShapeOptimizationQ4 "${SRCROOT}/propagationOptimizationShapeOptimizationQ4.cpp" )
+
 setup_executable_target(application_PropagationOptimizationShapeOptimization "${SRCROOT}")
+setup_executable_target(application_PropagationOptimizationShapeOptimizationQ3 "${SRCROOT}")
+setup_executable_target(application_PropagationOptimizationShapeOptimizationQ4 "${SRCROOT}")
+
 target_link_libraries(application_PropagationOptimizationShapeOptimization tudat_application_library_shape_optimization json_interface_library ${TUDAT_ESTIMATION_LIBRARIES} ${Boost_LIBRARIES} )
+target_link_libraries(application_PropagationOptimizationShapeOptimizationQ3 tudat_application_library_shape_optimization json_interface_library ${TUDAT_ESTIMATION_LIBRARIES} ${Boost_LIBRARIES} )
+target_link_libraries(application_PropagationOptimizationShapeOptimizationQ4 tudat_application_library_shape_optimization json_interface_library ${TUDAT_ESTIMATION_LIBRARIES} ${Boost_LIBRARIES} )
 
 

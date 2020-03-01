@@ -102,138 +102,17 @@ std::shared_ptr< PropagationTerminationSettings > getPropagationTerminationSetti
 std::shared_ptr< IntegratorSettings< > > getIntegratorSettings(
         unsigned int i, unsigned int j, unsigned int k, double simulationStartEpoch )
 {
-    // Define list of multi-stage integrators (for convenience)
-    std::vector< RungeKuttaCoefficients::CoefficientSets > multiStageTypesRK =
-    { RungeKuttaCoefficients::rungeKuttaFehlberg45,
-      RungeKuttaCoefficients::rungeKuttaFehlberg56,
-      RungeKuttaCoefficients::rungeKuttaFehlberg78,
-      RungeKuttaCoefficients::rungeKutta87DormandPrince };
+    double timeStep = 1.0;
+    int orderABM = 6;
+    std::cout<< "ABM fixed, order: " << orderABM <<std::endl;
 
-    // Create integrator settings (multi-stage variable-step)
-    if( j < 4 ) // RK 4, 5, 7, 8 // tol -14, -12, -10, -8
-    {
-        double currentTolerance = std::pow( 10.0, ( -14.0 + 2*static_cast< double >( k ) ) );
+    // Create integrator settings
+    return std::make_shared<  AdamsBashforthMoultonSettings< > >(
+                simulationStartEpoch, timeStep,
+                timeStep, timeStep,
+                std::numeric_limits< double >::infinity( ), std::numeric_limits< double >::infinity( ),
+                orderABM, orderABM );
 
-        // Extract integrator type and tolerance for current run
-        RungeKuttaCoefficients::CoefficientSets currentCoefficientSet = multiStageTypesRK.at( j );
-
-        // Create integrator settings
-        return std::make_shared< RungeKuttaVariableStepSizeSettings< > >(
-                    simulationStartEpoch, 1.0, currentCoefficientSet,
-                    std::numeric_limits< double >::epsilon( ), 10.0,
-                    currentTolerance, currentTolerance*1E-1  );
-
-    }
-    else if( j < 8 ) // BS 2, 4, 6, 8
-    {
-        double currentTolerance = std::pow( 10.0, ( -14.0 + 2*static_cast< double >( k ) ) );
-
-        int orderBS = (j-2)*2;
-        std::cout<< "BS, order: " << orderBS <<std::endl;
-        // Create integrator settings
-        return std::make_shared<  BulirschStoerIntegratorSettings< > >(
-                    simulationStartEpoch, 1.0, bulirsch_stoer_sequence ,
-                    orderBS ,
-                    0.25, std::numeric_limits< double >::infinity( ),
-                    currentTolerance, currentTolerance );
-
-    }
-    else if( j == 8 ) // ABM variable // tols -12 -10 -8 -6
-    {
-        double currentTolerance = std::pow( 10.0, ( -12.0 + 2*static_cast< double >( k ) ) );
-
-        // Create integrator settings
-        return std::make_shared<  AdamsBashforthMoultonSettings< > >(
-                    simulationStartEpoch, 1.0,
-                    0.25 , 10.0,
-                    currentTolerance, currentTolerance*1E-1 );
-    }
-    else if( j < 12 ) // ABM 6, 8, 10     // tols -12 -10 -8 -6
-    {
-        double currentTolerance = std::pow( 10.0, ( -12.0 + 2*static_cast< double >( k ) ) );
-
-        int orderABM = 2*j-12;
-        std::cout<< "ABM variable, order: " << orderABM <<std::endl;
-
-        // Create integrator settings
-        return std::make_shared<  AdamsBashforthMoultonSettings< > >(
-                    simulationStartEpoch, 1.0,
-                    0.25, 10.0,
-                    currentTolerance, currentTolerance*1E-1, orderABM, orderABM );
-    }
-
-    // Create integrator settings (multi-stage fixed-step)
-    else if (j==12)
-    {
-        double timeStep = 0.5 * std::pow( 2, k );
-        // Create integrator settings
-        return std::make_shared< IntegratorSettings< > >( rungeKutta4, simulationStartEpoch, timeStep );
-    }
-    else if( j < 15 )
-    {
-        double timeStep = 0.5 * std::pow( 2, k );
-
-        // Extract integrator type and tolerance for current run
-        RungeKuttaCoefficients::CoefficientSets currentCoefficientSet = multiStageTypesRK.at( j-12 );
-        std::cout<< "RKF fixed, stepSize: " << timeStep <<"coeffset: " << currentCoefficientSet << std::endl;
-
-        // Create integrator settings
-        return std::make_shared< RungeKuttaVariableStepSizeSettings< > >(
-                    simulationStartEpoch, timeStep, currentCoefficientSet,
-                    timeStep, timeStep,
-                    std::numeric_limits< double >::infinity( ), std::numeric_limits< double >::infinity( ) );
-
-    }
-    else if( j < 16 )
-    {
-        double timeStep = 1.2 * std::pow( 2, k );
-
-        // Extract integrator type and tolerance for current run
-        RungeKuttaCoefficients::CoefficientSets currentCoefficientSet = multiStageTypesRK.at( 3 );
-        std::cout<< "RKF fixed, stepSize: " << timeStep <<"coeffset: " << currentCoefficientSet << std::endl;
-
-        // Create integrator settings
-        return std::make_shared< RungeKuttaVariableStepSizeSettings< > >(
-                    simulationStartEpoch, timeStep, currentCoefficientSet,
-                    timeStep, timeStep,
-                    std::numeric_limits< double >::infinity( ), std::numeric_limits< double >::infinity( ) );
-    }
-    else if( j < 20 ) // BS 2, 4, 6, 8
-    {
-        double timeStep = 1.0 * std::pow( 2, k );
-        int orderBS = (j-15)*2;
-        std::cout<< "BS fixed, order: " << orderBS <<std::endl;
-        // Create integrator settings
-        return std::make_shared<  BulirschStoerIntegratorSettings< > >(
-                    simulationStartEpoch, timeStep, bulirsch_stoer_sequence ,
-                    orderBS ,
-                    timeStep, timeStep,
-                    std::numeric_limits< double >::infinity( ), std::numeric_limits< double >::infinity( ) );
-    }
-    else if( j == 20 ) // ABM fixed
-    {
-        double timeStep = 1.0 * std::pow( 2, k );
-
-        // Create integrator settings
-        return std::make_shared<  AdamsBashforthMoultonSettings< > >(
-                    simulationStartEpoch, timeStep,
-                    timeStep, timeStep,
-                    std::numeric_limits< double >::infinity( ), std::numeric_limits< double >::infinity( ) );
-    }
-    else if( j < 24 ) // ABM 6, 8, 10
-    {
-        double timeStep = 1.0 * std::pow( 2, k );
-
-        int orderABM = (j-18)*2;
-        std::cout<< "ABM fixed, order: " << orderABM <<std::endl;
-
-        // Create integrator settings
-        return std::make_shared<  AdamsBashforthMoultonSettings< > >(
-                    simulationStartEpoch, timeStep,
-                    timeStep, timeStep,
-                    std::numeric_limits< double >::infinity( ), std::numeric_limits< double >::infinity( ),
-                    orderABM, orderABM );
-    }
 }
 
 //! Function to retrieve the dependent variable save settings for the current simulation.
@@ -471,7 +350,7 @@ int main()
     std::vector< double > shapeParameters =
     {7.041740653,	2.3023325677,	2.2330797267,	-0.558728029,	0.3602598373,	0.4809835448};
 
-    std::string outputPath = tudat_applications::getOutputPath( "ShapeOptimization" );
+    std::string outputPath = tudat_applications::getOutputPath( "ShapeOptimizationQ3" );
     bool generateAndCompareToBenchmark = true;
     bool benchmarkLoop = false;
 
@@ -564,6 +443,7 @@ int main()
     }
     else
     {
+
         std::vector< std::shared_ptr< OneDimensionalInterpolator< double, Eigen::VectorXd > > > benchmarkInterpolators;
 
         if( generateAndCompareToBenchmark )
@@ -612,9 +492,9 @@ int main()
         //!
         //!  CODING NOTE: THE NUMBER, TYPES, SETTINGS OF PROPAGATORS/INTEGRATORS/INTEGRATOR STEPS,TOLERANCES,ETC. SHOULD BE MODIFIED FOR ASSIGNMENT 1
         //!
-        unsigned int numberOfPropagators = 1;
-        unsigned int numberOfIntegrators = 24;
-        unsigned int numberOfIntegratorStepSizeSettings = 4;
+        unsigned int numberOfPropagators = 7;
+        unsigned int numberOfIntegrators = 1;
+        unsigned int numberOfIntegratorStepSizeSettings = 1;
         for( unsigned int i = 0; i < numberOfPropagators; i++ )
         {
             // Create propagator settings
@@ -627,10 +507,6 @@ int main()
             // Iterate over all types of integrators
             for( unsigned int j = 0; j < numberOfIntegrators; j++ )
             {
-                // Change number of step sizes used for RK4
-
-                 numberOfIntegratorStepSizeSettings = 4;
-
 
                 // Iterate over all tolerances/step sizes
                 for( unsigned int k = 0; k < numberOfIntegratorStepSizeSettings; k++ )
@@ -638,7 +514,7 @@ int main()
                     // Print status
                     std::cout<<"Current run "<<i<<" "<<j<<" "<<k<<std::endl;
                     outputPath = tudat_applications::getOutputPath(
-                                "ShapeOptimization/prop_" + std::to_string( i ) + "/int_" + std::to_string( j ) + "/setting_" + std::to_string( k ) + "/" );
+                                "ShapeOptimizationQ3/prop_" + std::to_string( i ) + "/int_" + std::to_string( j ) + "/setting_" + std::to_string( k ) + "/" );
 
                     // Create integrator settings
                     std::shared_ptr< IntegratorSettings< > > integratorSettings = getIntegratorSettings( i, j, k, simulationStartEpoch );
